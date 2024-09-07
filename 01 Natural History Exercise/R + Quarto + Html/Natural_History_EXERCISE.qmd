@@ -65,7 +65,7 @@ median(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #Median of the log incbbation
 sd(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #Standard deviation of the log incubation days
 
 sd_index_incubation_log_days <- sd(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #creating the sd of incubation period to calculate dispersion
-exp(sd_index_incubation_days) #Dispersion
+exp(sd_index_incubation_log_days) #Dispersion
 ```
 
 -   Because incubation periods are log-normally distributed, 66% of cases should fall within the median/exp(sd) and median\*exp(sd). Does that appear to be the case?
