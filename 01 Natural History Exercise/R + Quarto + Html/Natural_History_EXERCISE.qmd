@@ -108,11 +108,27 @@ denscomp(incubation_fit_ln)
 
 ### ANSWER
 
+```{r}
+#serial interval = serial_interval_days
+median(data$SERIAL_INTERVAL_DAYS, na.rm=TRUE) #Median of the serial interval
+
+median(data$SERIAL_INTERVAL_LOG_DAYS, na.rm=TRUE) #Median of the log serial interval
+
+sd(data$SERIAL_INTERVAL_LOG_DAYS, na.rm=TRUE) #Standard deviation of the log serial interval
+
+sd_index_incubation_log_days <- sd(data$SERIAL_INTERVAL_LOG_DAYS, na.rm=TRUE) #creating the sd of log serial interval to calculate dispersion
+exp(sd_index_incubation_log_days) #Dispersion
+```
+
 ### Question 3 **(1pt)**
 
 -   Finally, calculate the same four values (median of the incubation period, the median of the log incubation period, the standard deviation of the log incubation period, and the dispersion) and generate the same plot, this time for *the duration of illness*.
 
 ### ANSWER
+
+```{r}
+
+```
 
 ### Question 4 **(1pt)**
 
@@ -120,12 +136,20 @@ denscomp(incubation_fit_ln)
 
 ### ANSWER
 
+```{r}
+
+```
+
 ### Question 5 **(1pt)**
 
 -   Calculate the secondary attack rate among household contacts.
     -   *(number ill /number exposed)*
 
 ### ANSWER
+
+```{r}
+
+```
 
 ### Question 6 \[Extra Credit\] **(0.5pt)**
 
