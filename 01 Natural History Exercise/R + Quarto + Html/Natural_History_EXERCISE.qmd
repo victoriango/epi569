@@ -25,6 +25,7 @@ knitr::opts_chunk$set(fig.height = 4, fig.width = 4, warning = FALSE)
 
 ```{r, include=TRUE, eval=TRUE}
 data <- read.csv(url("https://raw.githubusercontent.com/blopman/epi569/master/NaturalHistoryExercise.csv")) #%>% rename(HOUSEHOLD_ = ï..HOUSEHOLD_) #you may need to run the commented out code if the HOUSEHOLD_ variable is read in wrong
+view(data)
 ```
 
 -   You can see all the data on times of exposure, onset of symptoms and time of last symptom episode. The **HOUSEHOLD\_** variable indicated which household the person was a member; and **HOUSEHOLD_INDEX** indicated if the person got ill at the restaurant. The other fields should be self-explanatory.
@@ -55,7 +56,30 @@ data <- read.csv(url("https://raw.githubusercontent.com/blopman/epi569/master/Na
 
 ### ANSWER
 
+```{r}
+#incubation period = index_incubation_days
+median(data$INDEX_INCUBATION_DAYS, na.rm=TRUE) #median of the incubation period
+
+
+median(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #median of the log incbbation period
+
+#standard deviation of the log incubation days
+sd(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE)
+
+#dispersion
+sd_index_incubation_days <- sd(data$INDEX_INCUBATION_DAYS, na.rm=TRUE) #creating the sd of incubation period to calculate dispersion
+exp(sd_index_incubation_days)
+```
+
 -   Because incubation periods are log-normally distributed, 66% of cases should fall within the median/exp(sd) and median\*exp(sd). Does that appear to be the case?
+
+    ```{r}
+    #division
+    median_incu<-median(data$INDEX_INCUBATION_DAYS, na.rm=TRUE)
+    dispersion_incu<-exp(sd_index_incubation_days)
+    median_incu/dispersion_incu
+
+    ```
 
 ### ANSWER
 
