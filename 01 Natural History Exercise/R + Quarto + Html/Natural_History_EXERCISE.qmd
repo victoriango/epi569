@@ -1,6 +1,6 @@
 ---
 title: "EPI 569 -- Exercise 1: Natural history of infectious diseases"
-author: "Ben Lopman, Elizabeth Rogawski McQuade"
+author: "Ben Lopman, Elizabeth Rogawski McQuade - Student: Victoria Ngo"
 format: html
 editor: visual
 ---
@@ -65,6 +65,7 @@ median(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #Median of the log incbbation
 sd(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #Standard deviation of the log incubation days
 
 sd_index_incubation_log_days <- sd(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #creating the sd of incubation period to calculate dispersion
+
 exp(sd_index_incubation_log_days) #Dispersion
 ```
 
@@ -73,20 +74,22 @@ exp(sd_index_incubation_log_days) #Dispersion
 ### ANSWER
 
 ```{r}
-median_log_incu<-median(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE)
-dispersion_log_incu<-exp(sd_index_incubation_log_days)
-lower_bound <-median_log_incu/dispersion_log_incu #division
-upper_bound <- median_log_incu*dispersion_log_incu #multiplication
+median_incubation_log_period <- median(data$INDEX_INCUBATION_LOG_DAYS, na.rm=TRUE) #Median of the log incbbation period
+dispersion <- exp(sd_index_incubation_log_days) #Dispersion
 
-within_range <- data$INDEX_INCUBATION_LOG_DAYS[data$INDEX_INCUBATION_LOG_DAYS >= lower_bound & data$INDEX_INCUBATION_LOG_DAYS <= upper_bound]
+table(is.na(data$INDEX_INCUBATION_LOG_DAYS)) # there are some NA values!
 
-proportion_within_range <- length(within_range) / length(data$INDEX_INCUBATION_LOG_DAYS)
+lower_bound = (median_incubation_log_period/dispersion) 
+upper_bound = (median_incubation_log_period*dispersion)
 
-proportion_within_range
+round(100 * 
+        nrow(data %>% filter(!is.na(INDEX_INCUBATION_LOG_DAYS), INDEX_INCUBATION_LOG_DAYS >= lower_bound, INDEX_INCUBATION_LOG_DAYS <= upper_bound)) / 
+        nrow(data %>% filter(!is.na(INDEX_INCUBATION_LOG_DAYS)))
+      )
 
 ```
 
-No, that does not appear to be the case. 88.1% of cases fall within the range, which is more than expected.
+68% of cases fall within the calculated upper and lower range. This percentage is higher than the 66% hypothesized proportion.
 
 -   Now, *use the following commands* to plot the distribution of this variable and a fitted log-normal distribution as follows:
     -   Create a variable without all the missing data
@@ -118,7 +121,14 @@ sd(data$SERIAL_INTERVAL_LOG_DAYS, na.rm=TRUE) #Standard deviation of the log ser
 
 sd_index_incubation_log_days <- sd(data$SERIAL_INTERVAL_LOG_DAYS, na.rm=TRUE) #creating the sd of log serial interval to calculate dispersion
 exp(sd_index_incubation_log_days) #Dispersion
+
+serial_int<-data$SERIAL_INTERVAL_DAYS[!is.na(data$SERIAL_INTERVAL_DAYS)]
+serial_int_fit_ln <- fitdist(serial_int, "lnorm")
+summary(serial_int_fit_ln)
+denscomp(serial_int_fit_ln)
 ```
+
+Yes, there was a wide distribution of serial intervals due to having a high sdlog value.
 
 ### Question 3 **(1pt)**
 
@@ -127,6 +137,21 @@ exp(sd_index_incubation_log_days) #Dispersion
 ### ANSWER
 
 ```{r}
+#duration = duration_days
+median(data$DURATION_DAYS, na.rm=TRUE) #Median of the duration
+
+median(data$DURATION_LOG_DAYS, na.rm=TRUE) #Median of the log duration
+
+sd(data$DURATION_LOG_DAYS, na.rm=TRUE) #Standard deviation of the duration
+
+sd_index_incubation_log_days <- sd(data$DURATION_LOG_DAYS, na.rm=TRUE) #creating the sd of duration to calculate dispersion
+exp(sd_index_incubation_log_days) #Dispersion
+
+duration<-data$DURATION_DAYS[!is.na(data$DURATION_DAYS)]
+duration<-duration[duration > 0]
+duration_fit_ln <- fitdist(duration, "lnorm")
+summary(duration_fit_ln)
+denscomp(duration_fit_ln)
 
 ```
 
@@ -136,9 +161,9 @@ exp(sd_index_incubation_log_days) #Dispersion
 
 ### ANSWER
 
-```{r}
+In questions 1 -3, the median incubation period, serial interval, and duration of illness were calculated. According to Robilotti et al. (2015), the Kaplan;s criteria for a norovirus outbreak is a mean (or median) illness duration of 12-60 hours and a mean (or median) incubation period of 24 to 48 hours. Both of which align with this investigation's findings of a median duration of 0.75 days and a median incubation period of 1.79 days.
 
-```
+Robilotti, Elizabeth, Stan Deresinski, and Benjamin A. Pinsky. "Norovirus." *Clinical microbiology reviews* 28.1 (2015): 134-164.
 
 ### Question 5 **(1pt)**
 
@@ -148,6 +173,16 @@ exp(sd_index_incubation_log_days) #Dispersion
 ### ANSWER
 
 ```{r}
+#creating objects
+number_ill <- sum(data$ILL == "Y", na.rm = TRUE)
+
+number_exposed <- nrow(data)  
+
+# Calculate the secondary attack rate
+secondary_attack_rate <- number_ill / number_exposed
+
+# Print result
+secondary_attack_rate*100
 
 ```
 
