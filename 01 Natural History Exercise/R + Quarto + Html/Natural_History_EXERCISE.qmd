@@ -3,6 +3,7 @@ title: "EPI 569 -- Exercise 1: Natural history of infectious diseases"
 author: "Ben Lopman, Elizabeth Rogawski McQuade - Student: Victoria Ngo"
 format: html
 editor: visual
+self-contained: true
 ---
 
 ```{r setup, include=FALSE}

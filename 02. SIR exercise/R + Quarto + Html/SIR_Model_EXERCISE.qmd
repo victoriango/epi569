@@ -1,11 +1,12 @@
 ---
 title: "EPI 569 -- Homework 2: Modeling a directly-transmitted pathogen"
-author: "Ben Lopman REPLACE WITH YOUR NAME HERE" 
+author: "Victoria Ngo" 
 date written: "8/27/2020"
 date revised: "8/15/2024"
 format: html
 widescreen: true
 smaller: true
+self-contained: true
 ---
 
 ```{r, include=TRUE, echo = TRUE, warning=FALSE}
@@ -44,9 +45,8 @@ library(ggplot2)
 
 
 ```{r, echo = TRUE}
+knitr::include_graphics(here::here("02. SIR exercise", "Figure", "q1 sir model.jpg"))
 
-#Add your figure here
-#knitr::include_graphics("FILENAME.png")
 ```
 
 ## Question 2 **(1pt)**
@@ -56,6 +56,11 @@ library(ggplot2)
 -   *Go through these equations to ensure that you understand what each term implies about the epidemiology of infection. You can also review the formulas in a[n Excel spreadsheet version of this model](https://github.com/blopman/epi569/blob/master/SIR_model_exercise.xlsx). Note that those are difference (not differential) equations*
 
 -   **ANSWER**\
+```{r}
+knitr::include_graphics(here::here("02. SIR exercise", "Figure", "q2 sir model.jpg"))
+
+```
+
 
 
 ## Background 2
@@ -84,6 +89,7 @@ library(ggplot2)
 
 -   **ANSWER**
 
+The equation for the basic reproductive number, $R_{0}=\frac{\alpha \beta}{\mu +\sigma}$, can be seen as the daily rate of transmission from the probable contact with an infectious and susceptible person divided by the rate of recovery.
 
 ## Question 4 **(1pt)**
 
@@ -91,12 +97,23 @@ library(ggplot2)
 
 -   **ANSWER**
 
+$R_{0}=\frac{5.0 * 0.1}{0 + 0.2}$
+
+$R_{0}=2.5$
+
 ## Question 5 **(1pt)**
 
 -   If the initial conditions are $S_{0}$ = 100, $I_{0}$ = 0, and $R_{0}$ = 0, what does this say about the composition of the population at t = 0?
 
 -   **ANSWER**
 
+$N=S + I + R$
+
+$N=100 + 0 + 0$
+
+$N=100$
+
+At time = 0, the population of 100 does not have any infected or recovered individuals.
 
 ## Background 4
 
@@ -156,6 +173,9 @@ ggplot(sir_out_long,aes(x=time,y=value,colour=variable,group=variable))+
 
 -   **ANSWER**
 
+The epidemic peaks around time 15 and finishes peaking around time 25. This is also when the amount of population infected, $R_{e}$, is roughly ~60%, the amount needed to reach herd immunity in this population.
+
+No, not everyone becomes infection as the epidemic progresses. As people recover and become immune, the pool of susceptible individuals shrinks, and the epidemic will slow down and eventually stop due to herd immunity. This natural epidemic progression ensures that only a portion of the population will be infected.
 
 ## Question 7 **(1pt)**
 
@@ -167,6 +187,7 @@ ggplot(sir_out_long,aes(x=time,y=value,colour=variable,group=variable))+
 
 -   **ANSWER**
 
+Yes, the threshold where an epidemic will not occur, otherwise known as the herd immunity threshold ($S_{0}$), is 0.60.
 
 ## Question 8 **(1pt)**
 
@@ -215,6 +236,10 @@ ggplot(sir_out_long,aes(x=time,y=value,colour=variable,group=variable))+
 ```
 
 -   **ANSWER**
+
+As the birth/death rate increases, there is a decrease in infections and recovery in the population due to population size changing.The increased birth/death is also decreasing $R_{0}$, making it harder for the disease to spread as fast. Additionally, the peak of the infection is delayed to time = 25 when $\mu$ > 0. 
+
+A non-zero $\mu$ means that the infection can stabilize at a low level in the population due to the constant flow of new susceptibles preventing the disease from dying out. This potentially leads to endemic stability where the disease continues to circulate in the population at manageable levels.
 
 ## Question 9 **(1pt)**
 
@@ -268,11 +293,15 @@ ggplot(sir_out_long,aes(x=time,y=value,colour=variable,group=variable))+
 
 -   **ANSWER**
 
+The overall susceptible population fluctuates at the start by having a sharp decrease. It then increased again after the immunity wanes from the initial infection. This waning immunity allows the same people to become reinfected, which perpetuates the infection. This perpetuation is what explains the stable flattened lines of susceptible, infectious, and recovered populations after time 0 without the infection decreasing.
+
 ## Question 10 **(1pt)**
 
 -   $R_{e}$ is defined as the average number of secondary infections produced by an infectious person at any given time *e*. What is the value of $R_{e}$ when the infection has attained the endemic equilibrium? How does the duration of immunity affect $R_{e}$? What does this mean? (0.5pt)
 
 -   **ANSWER**
+
+At endemic equilibrium, $R_{e}$ would be equal to 1. The duration of immunity impacts $R_{e}$ by increasing the susceptible population due to reinfection. The reinfection from waning immunity allows the infection to stay in the population as the number in the susceptible population is perpetually changing as people are moving from recovered to susceptible.
 
 
 ## Extensions
