@@ -1,0 +1,130 @@
+---
+title: "EPI 569 -- Exercise 3: Diagnostics and Seroepidemiology"
+author: "Victoria Ngo"
+format: html
+editor: visual
+widescreen: true
+smaller: true
+self-contained: true
+---
+
+```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+```
+
+## Introduction
+
+### The datafile *India_RotaSerology_updated.csv* contains measurements on antibodies against rotavirus for children from birth to 18 years of age and measurements of virus detection at 36 months.
+
+```{r}
+sero <- data.frame(read.csv("https://raw.githubusercontent.com/blopman/epi569/master/India_RotaSerology_updated.csv"))
+```
+
+-   You have data on about 350 children.
+
+-   Blood was drawn at birth and at 36-monthly intervals (every 3 years)
+
+    -   Serum IgG and IgA was measured by EIA using serial dilutions.
+    -   Dilutions were 2-fold, with dilutions ranging from 1:10, 1:20; 1:40 to a maximum of 1:2560.
+
+-   Additionally, at 36 months, both an enzyme immunoassay (EIA) test and a polymerase chain reaction (PCR) test were used to detect rotavirus in the children's stool.
+
+    -   EIA results were recorded as positive (virus detected) or negative (virus not detected).
+    -   PCR results were recorded as cycle thresholds, i.e. the number of PCR cycles needed to detect rotavirus. Lower cycle thresholds indicate higher viral loads. The maximum number of cycles run was 40. If fewer than 40 cycles were recorded, rotavirus was detected by PCR; if 40 cycles were recorded, rotavirus was not detected.
+
+### Question 1 **(3pts)**
+
+-   What is the correct summary measure of antibody concentrations? State the value should be analyzed and the appropriate summary statistic. (Hint: see the lecture slides on "Quantifying antibodies")
+
+### ANSWER
+
+-   Calculate this summary measure for IgG and IgA by age.
+
+### ANSWER
+
+```{r, echo = TRUE}
+# here's some code to summarise IgG by age
+gmt <- sero %>% 
+  group_by(Age_Month) %>% 
+  summarize(geo_mean_igg = 10^(mean(log10(IgG))))
+
+# edit code above (or write new code) to also summarize IgA by age
+```
+
+-   Describe in words the patterns of the IgG and IgA summary statistic over age.
+
+### ANSWER
+
+-   Which antibody (IgG or IgA) would you use to estimate incidence (new infections)?
+
+### ANSWER
+
+### Question 2 **(2pts)**
+
+-   Next, convert the antibody data into two binary variables representing:
+    -   Protective antibodies: An IgA titer of \>= 90 units is considered to be protective against future disease.
+    -   Ever infected: An IgA titer of \>= 20 units indicates having ever been infected with rotavirus.
+    -   Note: for ease of analysis, the variables can be coded as 1 = positive (i.e. above threshold as defined above); 0 = negative (i.e. below threshold as defined above)
+
+```{r, echo = TRUE}
+# add your code here 
+
+```
+
+-   What proportion of children have protective antibody levels at each age in months (0, 36,... 216m)?
+-   What proportion of children at each age have ever had a rotavirus infection?
+
+### ANSWER
+
+```{r}
+# add your code here; we suggest reporting the proportions requested above by each age group in a table format
+
+```
+
+### Question 3 **(2pts)**
+
+-   Calculate R0, the basic reproduction number. Assume life expectancy is 68 years, average age of 1st infection is 5.5 years, and Type II mortality. See the lecture slides on calculating Ro from the average age of first infection in the "Analysis and modeling of serology data" lecture
+
+### ANSWER
+
+```{r}
+# add your code here
+
+```
+
+-   What is the herd immunity threshold for rotavirus in this population? (Hint: You may need to look back to previous lectures on Ro and the HIT.)
+
+### ANSWER
+
+-   Do you think that this is a reasonable level of coverage to be achieved? Put another way, can rotavirus be eradicated? Explain your reasoning.
+
+### ANSWER
+
+### Question 4 **(3pts)**
+
+-   At 36 months of age, calculate the mean numbers of cycle thresholds for PCR detection of rotavirus in this sample separately by EIA test status (i.e., the mean for those who test EIA negative and those who test EIA positive).
+
+### ANSWER
+
+```{r}
+# add your code here
+# HINT: similar to Q1, you will need the following functions: filter(), group_by(), summarise()
+
+```
+
+-   Additionally, calculate the percentage of children who tested positive by EIA and by PCR (e.g., rotavirus detected at less than 40 cycles), respectively. Compare these two values. Explain any differences you see.
+
+### ANSWER
+
+```{r}
+# add your code here
+# HINT: you will need to dichotomize PCR results into positive or negative
+
+```
+
+-   Describe the differences between what is being detected by IgG/IgA levels and what is being detected by EIA/PCR.
+
+### ANSWER
