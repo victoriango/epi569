@@ -21,6 +21,7 @@ library(ggplot2)
 
 ```{r}
 sero <- data.frame(read.csv("https://raw.githubusercontent.com/blopman/epi569/master/India_RotaSerology_updated.csv"))
+view(sero)
 ```
 
 -   You have data on about 350 children.
@@ -41,15 +42,24 @@ sero <- data.frame(read.csv("https://raw.githubusercontent.com/blopman/epi569/ma
 
 ### ANSWER
 
+The correct summary measure of antibody concentrations is the geometric mean of the log of the reciprocal titer values. The values should be analyzed on a log scale of the reciprocal dilution values, specifically log base 10. The appropriate summary statistic is the geometric mean. This is calculated by taking the antilog ($10^x$) of the arithmetic mean of the log-transformed reciprocal dilutions.
+
 -   Calculate this summary measure for IgG and IgA by age.
 
 ### ANSWER
 
 ```{r, echo = TRUE}
 # here's some code to summarise IgG by age
-gmt <- sero %>% 
+igg_gmt <- sero %>% 
   group_by(Age_Month) %>% 
   summarize(geo_mean_igg = 10^(mean(log10(IgG))))
+print(igg_gmt)
+
+iga_gmt <- sero %>% 
+  group_by(Age_Month) %>% 
+  summarize(geo_mean_iga = 10^(mean(log10(IgA))))
+print(iga_gmt)
+
 
 # edit code above (or write new code) to also summarize IgA by age
 ```
@@ -58,9 +68,19 @@ gmt <- sero %>%
 
 ### ANSWER
 
+**IgG**
+
+At birth, newborns have a high IgG geometric mean, suggesting that newborns have elevated IgG levels due to maternal antibody transfer. The IgG values show an initial decline in early childhood. This is followed by a steady increase with age.
+
+**IgA**
+
+At birth, newborns have a very low IgA geometric mean that shows a continuous increase with age. After birth, there is a pronounced IgA growth during adolescence.
+
 -   Which antibody (IgG or IgA) would you use to estimate incidence (new infections)?
 
 ### ANSWER
+
+IgA would be better for estimating the incidence of new infections. In comparison to IgG, IgA has an earlier spike of markers after symptom onset. Additionally, IgA is typically involved with mucosal immunity and is the marker of recent immune response in the respiratory and gastrointestinal tracts where many infections occur.
 
 ### Question 2 **(2pts)**
 
@@ -70,8 +90,11 @@ gmt <- sero %>%
     -   Note: for ease of analysis, the variables can be coded as 1 = positive (i.e. above threshold as defined above); 0 = negative (i.e. below threshold as defined above)
 
 ```{r, echo = TRUE}
-# add your code here 
+#binary variable for Protective Antibodies
+sero$Protective_Antibodies <- ifelse(sero$IgA >= 90, 1, 0)
 
+#binary variable for Ever Infected
+sero$Ever_Infected <- ifelse(sero$IgA >= 20, 1, 0)
 ```
 
 -   What proportion of children have protective antibody levels at each age in months (0, 36,... 216m)?
@@ -80,8 +103,14 @@ gmt <- sero %>%
 ### ANSWER
 
 ```{r}
-# add your code here; we suggest reporting the proportions requested above by each age group in a table format
-
+# we suggest reporting the proportions requested above by each age group in a table format
+proportions_by_age <- sero %>%
+  group_by(Age_Month) %>%
+  summarise(
+    proportion_protective = round(mean(Protective_Antibodies, na.rm = TRUE), 2),
+    proportion_ever_infected = round(mean(Ever_Infected, na.rm = TRUE), 2)
+  )
+proportions_by_age
 ```
 
 ### Question 3 **(2pts)**
@@ -91,17 +120,28 @@ gmt <- sero %>%
 ### ANSWER
 
 ```{r}
-# add your code here
+life_expectancy <- 68
+average_age_infection <- 5.5
 
+R0 <- 1 + round(life_expectancy / average_age_infection, 2)
+
+R0
 ```
 
 -   What is the herd immunity threshold for rotavirus in this population? (Hint: You may need to look back to previous lectures on Ro and the HIT.)
 
 ### ANSWER
 
+```{r}
+HIT <- 1 - (1 / R0)
+HIT
+```
+
 -   Do you think that this is a reasonable level of coverage to be achieved? Put another way, can rotavirus be eradicated? Explain your reasoning.
 
 ### ANSWER
+
+I think achieving a 92.51% HIT and eradicating rotovirus would be ambitious and challenging. While the rotovirus vaccine efficacy is extremely effective and high vaccination rates in infants and young children can lead to herd immunity, a poor public health infrastructure and vaccine hesitancy in endemic countries creates barriers to achieving herd immunity.
 
 ### Question 4 **(3pts)**
 
@@ -110,9 +150,14 @@ gmt <- sero %>%
 ### ANSWER
 
 ```{r}
-# add your code here
 # HINT: similar to Q1, you will need the following functions: filter(), group_by(), summarise()
 
+mean_pcr_ct <- sero %>%
+  filter(Age_Month == 36) %>%
+  group_by(EIA) %>%
+  summarize(mean_PCR_Ct = mean(PCR_Ct, na.rm = TRUE))
+
+print(mean_pcr_ct)
 ```
 
 -   Additionally, calculate the percentage of children who tested positive by EIA and by PCR (e.g., rotavirus detected at less than 40 cycles), respectively. Compare these two values. Explain any differences you see.
@@ -120,11 +165,32 @@ gmt <- sero %>%
 ### ANSWER
 
 ```{r}
-# add your code here
 # HINT: you will need to dichotomize PCR results into positive or negative
+
+# Calculating percentage of children who tested positive by EIA, accounting for NAs
+eia_positive_percentage <- sero %>%
+  summarise(percentage_EIA_positive = sum(EIA == "Positive", na.rm = TRUE) / sum(!is.na(EIA)) * 100) 
+
+# Create binary variable for PCR Status: 1 for positive (Ct < 40), 0 for negative (Ct >= 40)
+sero$PCR_Status <- ifelse(sero$PCR_Ct < 40, 1, 0)
+
+# Calculate percentage of children who tested positive by PCR (Ct < 40)
+pcr_positive_percentage <- sero %>%
+  summarise(percentage_PCR_positive = sum(PCR_Status == 1, na.rm = TRUE) / sum(!is.na(PCR_Status)) * 100)
+
+# Combine the results into a single data frame for comparison
+comparison <- data.frame(
+  Measure = c("EIA Positive", "PCR Positive"),
+  Percentage = c(eia_positive_percentage$percentage_EIA_positive, 
+                 pcr_positive_percentage$percentage_PCR_positive)
+)
+comparison
+
 
 ```
 
 -   Describe the differences between what is being detected by IgG/IgA levels and what is being detected by EIA/PCR.
 
 ### ANSWER
+
+The IgG/IgA reflects the immune system's long-term response, whereas the EIA/PCR reflect both current infection and historical responses due to testing viral genetic material and antibody response.
