@@ -42,7 +42,9 @@ view(sero)
 
 ### ANSWER
 
+::: {.callout-note appearance="minimal" icon="false"}
 The correct summary measure of antibody concentrations is the geometric mean of the log of the reciprocal titer values. The values should be analyzed on a log scale of the reciprocal dilution values, specifically log base 10. The appropriate summary statistic is the geometric mean. This is calculated by taking the antilog ($10^x$) of the arithmetic mean of the log-transformed reciprocal dilutions.
+:::
 
 -   Calculate this summary measure for IgG and IgA by age.
 
@@ -68,6 +70,7 @@ print(iga_gmt)
 
 ### ANSWER
 
+::: {.callout-note appearance="minimal" icon="false"}
 **IgG**
 
 At birth, newborns have a high IgG geometric mean, suggesting that newborns have elevated IgG levels due to maternal antibody transfer. The IgG values show an initial decline in early childhood. This is followed by a steady increase with age.
@@ -75,12 +78,15 @@ At birth, newborns have a high IgG geometric mean, suggesting that newborns have
 **IgA**
 
 At birth, newborns have a very low IgA geometric mean that shows a continuous increase with age. After birth, there is a pronounced IgA growth during adolescence.
+:::
 
 -   Which antibody (IgG or IgA) would you use to estimate incidence (new infections)?
 
 ### ANSWER
 
+::: {.callout-note appearance="minimal" icon="false"}
 IgA would be better for estimating the incidence of new infections. In comparison to IgG, IgA has an earlier spike of markers after symptom onset. Additionally, IgA is typically involved with mucosal immunity and is the marker of recent immune response in the respiratory and gastrointestinal tracts where many infections occur.
+:::
 
 ### Question 2 **(2pts)**
 
@@ -141,7 +147,9 @@ HIT
 
 ### ANSWER
 
+::: {.callout-note appearance="minimal" icon="false"}
 I think achieving a 92.51% HIT and eradicating rotovirus would be ambitious and challenging. While the rotovirus vaccine efficacy is extremely effective and high vaccination rates in infants and young children can lead to herd immunity, a poor public health infrastructure and vaccine hesitancy in endemic countries creates barriers to achieving herd immunity.
+:::
 
 ### Question 4 **(3pts)**
 
@@ -155,7 +163,7 @@ I think achieving a 92.51% HIT and eradicating rotovirus would be ambitious and 
 mean_pcr_ct <- sero %>%
   filter(Age_Month == 36) %>%
   group_by(EIA) %>%
-  summarize(mean_PCR_Ct = mean(PCR_Ct, na.rm = TRUE))
+  summarize(mean_PCR_Ct = round(mean(PCR_Ct, na.rm = TRUE),2))
 
 print(mean_pcr_ct)
 ```
@@ -193,4 +201,6 @@ comparison
 
 ### ANSWER
 
-The IgG/IgA reflects the immune system's long-term response, whereas the EIA/PCR reflect both current infection and historical responses due to testing viral genetic material and antibody response.
+::: {.callout-note appearance="minimal" icon="false"}
+-   The IgG/IgA reflects the immune system's long-term response and the immunity to the infection, whereas the EIA/PCR reflects both the current infection of a pathogen and the historical responses due to testing viral genetic material and antibody response.
+:::
