@@ -1,6 +1,6 @@
 ---
 title: "EPI 569: Homework 4 - Analysis of 2018/19 Ebola outbreak in Democratic Republic of Congo -- Severity and Epidemic Growth"
-author: "Ben Lopman REPLACE WITH YOUR NAME HERE" 
+author: "Victoria Ngo" 
 date written: "8/27/2020"
 date revised: "9/17/2024"
 format: html
@@ -27,7 +27,7 @@ https://www.who.int/emergencies/diseases/ebola/drc-2019/situation-reports
 Since the start of the outbreak on 30 Apr 2018 until the end of September, there were 3,205 cases and 2,142 deaths were reported.  Here is the Epi curve to the end of Sept 2018.
 
 ```{r, echo = TRUE}
-knitr::include_graphics("drc_ebola_v2.png", dpi=10)
+knitr::include_graphics(here::here("04. OutbreakEpi exercise", "drc_ebola_v2.png"), dpi = 10)
 ```
 
 ## Question 1
