@@ -20,11 +20,12 @@ library(incidence, warn.conflicts=F, quietly=T)
 ```
 
 # Background 1
-The second largest ever Ebola virus disease outbreak occurred in 2018/19 in the Democratic Republic of Congo.  For your reference, you can find the Situation Reports (SitRep) for the outbreak on the WHO website. 
+
+The second largest ever Ebola virus disease outbreak occurred in 2018/19 in the Democratic Republic of Congo. For your reference, you can find the Situation Reports (SitRep) for the outbreak on the WHO website.
 
 https://www.who.int/emergencies/diseases/ebola/drc-2019/situation-reports
 
-Since the start of the outbreak on 30 Apr 2018 until the end of September, there were 3,205 cases and 2,142 deaths were reported.  Here is the Epi curve to the end of Sept 2018.
+Since the start of the outbreak on 30 Apr 2018 until the end of September, there were 3,205 cases and 2,142 deaths were reported. Here is the Epi curve to the end of Sept 2018.
 
 ```{r, echo = TRUE}
 knitr::include_graphics(here::here("04. OutbreakEpi exercise", "drc_ebola_v2.png"), dpi = 10)
@@ -32,10 +33,12 @@ knitr::include_graphics(here::here("04. OutbreakEpi exercise", "drc_ebola_v2.png
 
 ## Question 1
 
-What would have been the best time to intervene in this outbreak and why? 
+What would have been the best time to intervene in this outbreak and why?
 
-**ANSWER BELOW**  
-
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER BELOW**\
+The best time to intervene would be May 28th, when the second probable Ebola Virus case appeared. This timing is crucial due to the delay in confirmed case detection during the incubation phase. This delay implies that there is more Ebola Virus transmission in the community than there are confirmed cases.
+:::
 
 # Background 2
 
@@ -70,23 +73,23 @@ ggplot(drc_ebola, aes(x = Week)) +
   ylab("Case fatality")
 ```
 
-
 ## Question 2
 
-a.    Explain the differences between the crude CFR and the adjusted CFR that is based on date of onset of the deceased case.
+**RANGE DOES NOT END AT NOV 11**
 
-**ANSWER BELOW** 
-
-b.    Why is the crude CFR lower than the adjusted CFR?
+a.  Explain the differences between the crude CFR and the adjusted CFR that is based on date of onset of the deceased case.
 
 **ANSWER BELOW**
 
-c.    Why does the adjusted CFR appear to decline in the last few weeks? 
+b.  Why is the crude CFR lower than the adjusted CFR?
+
+**ANSWER BELOW**
+
+c.  Why does the adjusted CFR appear to decline in the last few weeks?
 
 **ANSWER BELOW**
 
 **Note:** *If we had line-lists of cases (which we do not here), we could also calculate the CFRs based on known outcomes (survived or died).*
-
 
 # Background 3
 
@@ -111,14 +114,13 @@ ggplot(r0_ebola, aes(onset_week, log_cases)) +
   ggtitle("Plot of log cases")
 ```
 
-
 ## Question 3
 
-a.    In order to calculate the basic reproductive number based on initial growth of the epidemic, which time interval would you use?
+a.  In order to calculate the basic reproductive number based on initial growth of the epidemic, which time interval would you use?
 
-**ANSWER BELOW**  
+**ANSWER BELOW**
 
-b.    Why did you select this time?
+b.  Why did you select this time?
 
 **ANSWER BELOW**
 
@@ -129,13 +131,12 @@ start_week <- 0 #change this number
 end_week <- 30 #change this number
 ```
 
-
 ## Question 4
 
 What is your calculation for the basic reproductive number?
 
 **ANSWER BELOW**
- 
+
 ```{r, include = TRUE, echo = T, message=FALSE}
 r0_ebola %>% 
   filter(onset_week>=start_week, onset_week <= end_week) %>% 
@@ -156,15 +157,14 @@ plot(res)
 
 ```
 
-
 ## Question 5
 
 Next, <u>test at least 2 different scenarios</u> to see how your estimate of $R_0$ changes when selecting different start/end weeks for exponential growth. Potential scenarios to consider might include:
 
 -   What happens if you include time before or after when exponential growth is occurring?
--   What happens if you include periods of decreasing case counts? 
+-   What happens if you include periods of decreasing case counts?
 
-Summarize your findings in the table shell below, rounding $R_0$ to 2 decimal places (n.nn). Briefly describe (~2-3 sentences) how your choice of time period affects the $R_0$ estimate.
+Summarize your findings in the table shell below, rounding $R_0$ to 2 decimal places (n.nn). Briefly describe (\~2-3 sentences) how your choice of time period affects the $R_0$ estimate.
 
 ```{r, message=FALSE}
 ##Scenario 1
@@ -235,13 +235,12 @@ res <- get_R(i, si_mean = mu, si_sd = sigma)
 scen3_Ro <- sample_R(res, 1000)
 mean(scen3_Ro)
 ```
- 
-**ANSWER BELOW** 
- 
-| Scenario       | Start Week | End Week |  Ro  |
-|----------------|------------|----------|------|
-| Example:       |  0         | 30       | 1.16 |
-| 1              | XX         | YY       | a.aa |
-| 2              | WW         | ZZ       | b.bb |
-| 3 (optional)   | MM         | NN       | c.cc |
 
+**ANSWER BELOW**
+
+| Scenario     | Start Week | End Week | Ro   |
+|--------------|------------|----------|------|
+| Example:     | 0          | 30       | 1.16 |
+| 1            | XX         | YY       | a.aa |
+| 2            | WW         | ZZ       | b.bb |
+| 3 (optional) | MM         | NN       | c.cc |
