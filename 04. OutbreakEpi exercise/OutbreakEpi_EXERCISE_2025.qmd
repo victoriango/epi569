@@ -35,9 +35,12 @@ knitr::include_graphics(here::here("04. OutbreakEpi exercise", "drc_ebola_v2.png
 
 What would have been the best time to intervene in this outbreak and why?
 
+**ANSWER BELOW**
+
 ::: {.callout-note appearance="minimal" icon="false"}
-**ANSWER BELOW**\
-The best time to intervene would be May 28th, when the second probable Ebola Virus case appeared. This timing is crucial due to the delay in confirmed case detection during the incubation phase. This delay implies that there is more Ebola Virus transmission in the community than there are confirmed cases.
+The best time to intervene would be May 28th, when the second and third probable Ebola Virus cases appeared. This timing is crucial due to the delay in confirmed case detection during the incubation phase. This delay implies that there is more Ebola Virus transmission in the community than there are confirmed cases.
+
+By intervening by May 28th, this ensures that there are procedures and interventions in place when Ebola cases become confirmed.
 :::
 
 # Background 2
@@ -75,19 +78,31 @@ ggplot(drc_ebola, aes(x = Week)) +
 
 ## Question 2
 
-**RANGE DOES NOT END AT NOV 11**
-
 a.  Explain the differences between the crude CFR and the adjusted CFR that is based on date of onset of the deceased case.
 
 **ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+The crude CFR starts at 0.00 at the beginning of the outbreak because deaths have not occurred or been reported, leading to an initially low case fatality. Over time, as more cases are confirmed and deaths are reported, the crude CFR gradually increases but does so at a slower rate. This is due to having a large denominator inclusive of all confirmed cases without accounting for the lag between symptom onset and death.
+
+The adjusted CFR begins at 1.00 at week 0 because it assumes that all cases are fatal, representing a null state. As time increases, the model takes into account the delay between the onset of symptoms and death, providing a smaller and more specific denominator. This produces a higher estimate of CFR early into the outbreak when fewer recoveries are yet known. Over time, as more data become available and more cases either recover or die, the adjusted CFR gradually lowers to converge with the crude CFR by week 30 at 0.62, indicating more complete data for both cases and outcomes.
+:::
 
 b.  Why is the crude CFR lower than the adjusted CFR?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The crude CFR is lower than the adjusted CFR because it does not account for the time lag between the onset of symptoms and death. This means the crude CFR has a large sensitive denominator, driving down the crude CFR value. The adjusted CFR considers this delay, leading to a quicker recognition of fatal cases, especially early in the outbreak. In contrast, the crude CFR rises more slowly because it includes all cases, including those that are still unresolved, resulting in a lower initial estimate. Over time, as more cases reach an outcome, both rates converge to the same value, reflecting a more accurate fatality rate.
+:::
+
 c.  Why does the adjusted CFR appear to decline in the last few weeks?
 
 **ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+The adjusted CFR gradually lowers to converge with the crude CFR by week 30 at 0.62, indicating more complete data for both cases and outcomes.
+:::
 
 **Note:** *If we had line-lists of cases (which we do not here), we could also calculate the CFRs based on known outcomes (survived or died).*
 
@@ -120,15 +135,23 @@ a.  In order to calculate the basic reproductive number based on initial growth 
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+I would use weeks 11-17.
+:::
+
 b.  Why did you select this time?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+Weeks 11 to 17 show a strong rise in cases and log cases. This is the time when there is a supportive transmission amount of secondary cases to say there's an outbreak.
+:::
+
 Add those weeks by changing R code below:
 
 ```{r}
-start_week <- 0 #change this number
-end_week <- 30 #change this number
+start_week <- 11 #change this number
+end_week <- 17 #change this number
 ```
 
 ## Question 4
@@ -171,7 +194,7 @@ Summarize your findings in the table shell below, rounding $R_0$ to 2 decimal pl
 # Choose start/end week. Change values of scen1_start and scen1_end
 
 scen1_start <- 0 #XX
-scen1_end <-  30 #YY
+scen1_end <-  11 #YY
 
 # Estimate Ro
 r0_ebola %>% 
@@ -193,8 +216,8 @@ mean(scen1_Ro)
 ```{r, message=FALSE}
 ##Scenario 2
 # Choose different start/end week. Change values of scen2_start and scen2_end
-scen2_start <- 0 #WW
-scen2_end <- 30 #ZZ
+scen2_start <- 11 #WW
+scen2_end <- 18 #ZZ
 
 # Estimate Ro
 r0_ebola %>% 
@@ -217,7 +240,7 @@ mean(scen2_Ro)
 ```{r, message=FALSE}
 ##Scenario 3 (OPTIONAL)
 # Choose different start/end week. Change values of scen3_start and scen3_end
-scen3_start <- 0 #MM
+scen3_start <- 17 #MM
 scen3_end <- 30 #NN
 
 # Estimate Ro
@@ -238,9 +261,13 @@ mean(scen3_Ro)
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+By changing the start and end weeks to weeks 0-11 right before my original $R_0$, this resulted in a 2.15 $R_0$, whereas changing the weeks to 11-18 resulted in a 2.44 $R_0$. This shows that the reproductive number of the early epidemic was less transmitted than during the peak of weeks of 11-17. By including an extra day in weeks 11-18 when the case counts saw a decrease, this decreased the $R_0$ from 3.30 to 2.44.
+:::
+
 | Scenario     | Start Week | End Week | Ro   |
 |--------------|------------|----------|------|
 | Example:     | 0          | 30       | 1.16 |
-| 1            | XX         | YY       | a.aa |
-| 2            | WW         | ZZ       | b.bb |
-| 3 (optional) | MM         | NN       | c.cc |
+| 1            | 0          | 11       | 2.15 |
+| 2            | 11         | 18       | 2.44 |
+| 3 (optional) | 17         | 30       | 0.78 |
