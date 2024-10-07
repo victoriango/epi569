@@ -1,7 +1,7 @@
 ---
 title: "EPI 569 -- Exercise 5: Calculating the effective reproduction number"
 author: "Victoria Ngo"
-date-modified: "10-05-2024"
+date-modified: "10-06-2024"
 format:
   html:
     embed-resources: true
@@ -24,7 +24,7 @@ A large outbreak of norovirus occurred at the Rushmore Academy boarding school a
 -   There were cases among both students and staff, but no cases outside of Rushmore.
 -   Despite thorough and regular cleaning of all classrooms and common areas with bleach, promoting enhanced hand hygiene measures through signs and messaging, and requiring all students and staff with gastrointestinal symptoms to remain home until at least 48 hours after symptoms resolved, the outbreak persisted until the end of November.
 -   Laboratory testing confirmed the cause of the outbreak to be norovirus.
-  
+
 Your job is to analyze the dataset to evaluate the transmission dynamics of the fall noroviurs outbreak. **The line list for the Rushmore Academy norovirus outbreak is available on Canvas (Rushmore_Noro_LineList.csv) or can be imported directly into R from the web** as follows:
 
 ```{r, include = TRUE, echo = TRUE}
@@ -37,32 +37,64 @@ linelist$onset_date <- as.Date(as.character(linelist$onset_date), format="%m/%d/
 
 In this line list, key information about each case in the outbreak was recorded, with each row representing a case and each column representing a variable. Variables include demographic, clinical, and epidemiologic information about each case.
 
-Import the line list into R and answer the questions below. Make sure to also run the code that converts the onset date variable to a date format so that later code runs properly.  
+Import the line list into R and answer the questions below. Make sure to also run the code that converts the onset date variable to a date format so that later code runs properly.
 
-## Question 1  **(1pt)**
+## Question 1 **(1pt)**
+
 Start your analysis with a basic description of the outbreak by answering the following questions:
 
-a.    What were the first and last illness onset dates?
+a.  What were the first and last illness onset dates?
+
+```{r}
+first_illness <- min(linelist$onset_date, na.rm = TRUE)
+last_illness <- max(linelist$onset_date, na.rm = TRUE)
+onset_summary <- data.frame(
+  first_illness = first_illness,
+  last_illness = last_illness
+)
+```
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+onset_summary
+```
+:::
 
-b.    How many days did the outbreak last (counting the first and last illness onset dates as the first and last days of the outbreak)? 
+b.  How many days did the outbreak last (counting the first and last illness onset dates as the first and last days of the outbreak)?
+
+```{r}
+outbreak_duration <- as.numeric(difftime(last_illness, first_illness, units = "days")) + 1
+```
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+outbreak_duration
+```
+:::
 
-c.    How many cases total cases were there?
+c.  How many cases total cases were there?
+
+```{r}
+total_cases <- nrow(linelist)
+```
 
 **ANSWER BELOW**
 
-
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+total_cases
+```
+:::
 
 # Background 2
 
-Next, use the code below to plot the epidemic (epi) curve for this outbreak. Symptom onset dates will be plotted on the x-axis and case counts on the y-axis. 
+Next, use the code below to plot the epidemic (epi) curve for this outbreak. Symptom onset dates will be plotted on the x-axis and case counts on the y-axis.
 
-``` {r, echo = TRUE}
+```{r, echo = TRUE}
 # Plotting the epidemic curve
 epicurve <- as.data.frame(linelist %>% group_by(onset_date) %>% summarize(incidence=n()))
 
@@ -75,34 +107,51 @@ plot1 <- ggplot(data=epicurve, aes(x=onset_date, y=incidence, labs=FALSE)) +
 plot1
 ```
 
-## Question 2  **(2pt)**
+## Question 2 **(2pt)**
 
-Examine the epidemic curve above and answer the following questions: 
+Examine the epidemic curve above and answer the following questions:
 
-a.    How many peaks are there?
-
-**ANSWER BELOW**
-
-
-b.    At what time(s) do cases start to decline? 
+a.  How many peaks are there?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+There are two peaks at 10/25 and 11/15. Rather than considering 3 peaks, I believe the last increase of 2 cases is not a true peak due to a lack of exponential growth following the cases.
+:::
 
-c.    Does the epidemic curve support the theory that the outbreak began with the vomiting incident in the  auditorium on 10/16? Briefly explain why or why not. 
-
-**ANSWER BELOW**
-
-
-d.    Does there appear to be sustained person-to-person transmission after the initial vomiting incidence? Briefly explain why or why not.
+b.  At what time(s) do cases start to decline?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The cases decline after the two peaks at 10/26 and 11/16.
+:::
 
-e.    Why is it difficult to determine who infected whom (i.e., the infector-infected pairs) from this epidemic curve?
+c.  Does the epidemic curve support the theory that the outbreak began with the vomiting incident in the auditorium on 10/16? Briefly explain why or why not.
 
 **ANSWER BELOW**
- 
+
+::: {.callout-note appearance="minimal" icon="false"}
+Yes, the epidemic curve supports the theory. Norovirus has a 12-48 hours of incubation before symptoms begin, which is shown by the second
+
+There was a large initial peak in the outbreak due to initial infection from the auditorium incident and due to a lack of replacement in Rushmore Academy, it makes sense that the Epi Curve decreases the first time 11 days after the auditorium incident.
+:::
+
+d.  Does there appear to be sustained person-to-person transmission after the initial vomiting incidence? Briefly explain why or why not.
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+Yes, there does seem to be a sustained person-to-person transmission after the initial incidence. This is evidenced by the eponential growth between 10/17 and 10/25.
+:::
+
+e.  Why is it difficult to determine who infected whom (i.e., the infector-infected pairs) from this epidemic curve?
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+Based on the outbreak occurring in a boarding school, there is ample social mixing where people may be exposed to multiple infectious people and exposure to large classes or heavily communal spaces. These reasons make it hard to discern who infected whom.
+:::
 
 # Background 3
 
@@ -110,7 +159,7 @@ Next, we'll calculate effective reproduction numbers over time, R(t), by onset d
 
 Because there are no clear infector-infected pairs that we can identify from this outbreak (other than perhaps the first case and cases that occurred 2-3 days later) we cannot determine the distribution of the serial interval (the time between symptom onset in primary cases and the secondary cases they generate) from these data. Therefore, to calculate R(t), we will use the serial interval distribution for norovirus previously estimated from an outbreak in Sweden for which infector-infected pairs were known (Heijne, et al.Emerg Infect Dis. 2009). This probability distribution for the serial interval is gamma distributed with *mean = 3.6 days and SD = 2.0 days*.
 
-We will use the `wallinga_teunis` function from the `EpiEstim` package to calculate R(t). 
+We will use the `wallinga_teunis` function from the `EpiEstim` package to calculate R(t).
 
 Run the code below to calculate and plot R(t) estimates and 95% confidence intervals. This code will also print the serial interval distribution used for the estimates.
 
@@ -175,30 +224,43 @@ plot2 <- ggplot(data=plot2.data, aes(x=dates, y=I, labs=FALSE)) +
 plot2
 ```
 
-### Question 3  **(2pt)**
+### Question 3 **(2pt)**
+
 Examine the R(t) estimates and answer the following questions:
 
-a.    How does infectiousness change over the course of the outbreak?
+a.  How does infectiousness change over the course of the outbreak?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+There is a high infectiousness R(t) above 4 that gradually declines over the next week and increases again around 11/16 before sustainably decreasing once again.
+:::
 
-b.    Why does the individual with the last illness onset date (11/27) have a R(t) of 0 (95% CI: 0, 0)?
-
-**ANSWER BELOW**
-
-
-c.    Why do cases with onset dates on days with large case counts (e.g., 10/25 with n=15) have relatively small R(t) estimates, despite there being several cases that occur after these dates?
+b.  Why does the individual with the last illness onset date (11/27) have a R(t) of 0 (95% CI: 0, 0)?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The R(t) of 0 means that the case would not go on to infect others, so there would be 0 new infections given that there is no replacement in this outbreak incidence.
+:::
 
-d.    Why does the outbreak continue even after Rt falls below 1?
+c.  Why do cases with onset dates on days with large case counts (e.g., 10/25 with n=15) have relatively small R(t) estimates, despite there being several cases that occur after these dates?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+There is a disconnect between having cases on dates with large case counts having a small R(t) because R(t) corresponds with new infections. In a closed outbreak with no replacement, when more people get infected, there are less people to infect. Therefore, the infectious capability and the R(t) goes down.
+:::
 
-## Question 4  **(2pt)**
+d.  Why does the outbreak continue even after Rt falls below 1?
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+Even with exponential decay, the transmission will not immediately stop if R(t) falls below 1. If there are still susceptible people with at least one infectious person, an outbreak can still continue.
+:::
+
+## Question 4 **(2pt)**
 
 Using the code below, change the mean of the serial interval distribution (keeping the standard deviation the same) and examine how the R(t) estimates change to answer the following questions regarding the first symptom onset date (10/16):
 
@@ -233,43 +295,62 @@ plot2 <- ggplot(data=plot2.data, aes(x=dates, y=I, labs=FALSE)) +
 plot2
 ```
 
-a.    What happens to the R(t) estimate for the FIRST CASE with onset 10-16 when you decrease the mean (e.g., to 2 days)?
+a.  What happens to the R(t) estimate for the FIRST CASE with onset 10-16 when you decrease the mean (e.g., to 2 days)?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The R(t) decreases from the original number above 4 to below 2.
+:::
 
-b.    What happens to the R(t) estimate for the FIRST CASE with onset 10-16 when you increase the mean (e.g., to 6 days)?
-
-**ANSWER BELOW**
-
-
-c.    Briefly explain why you see these changes. 
+b.  What happens to the R(t) estimate for the FIRST CASE with onset 10-16 when you increase the mean (e.g., to 6 days)?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The R(t) estimate increases from being above 4 to around 14.
+:::
 
-## Question 5  **(2pt)**
+c.  Briefly explain why you see these changes.
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+These trends are produced due to having a larger serial interval. This larger interval can contribute to a longer infection due to multiple cases being infected by a single case falling within the serial interval.
+:::
+
+## Question 5 **(2pt)**
 
 List 3 limitations of using the Wallinga-Teunis method to estimate R(t) in this outbreak.
 
 **ANSWER BELOW**
 
-  
-## Question 6  **(1 pt)**
+::: {.callout-note appearance="minimal" icon="false"}
+1.  WT method assumes that asymptomatic cases do not contribute toward transmission. However, in this instance with norovirus, this is not the case. Asymptomatic cases can still contribute to transmission in this highly contagious disease.
+2.  WT method assumes that cases cannot infect cases with the same or earlier symptom onset dates. However, in the case of this norovirus outbreak, people can have variable infectious periods depending on their biological response to the virus.
+3.  WT method assumes that the serial interval follows a fixed, pre-specified distribution. However, in the case of this norovirus outbreak, there may be variability in the serial interval due to different modes of transmission, like person-to-person and environmental contamination. This method may not accurately reflect the true distribution of transmission intervals, leading to over- or underestimation of the R(t) at different stages of the outbreak.
+:::
+
+## Question 6 **(1 pt)**
 
 Why would this approach not work well for estimating R(t) for a disease that is not primarily spread person-to-person (e.g., vectorborne, waterborne, or foodborne)?
 
 **ANSWER BELOW**
 
+::: {.callout-note appearance="minimal" icon="false"}
+The WT method primarily models direct transmission between individuals, overlooking the potential for environmental transmission. Ignoring environmental transmission could lead to inaccurate estimates of R(t), as it would fail to account for ongoing indirect transmission through contaminated environments. Additionally, infections that are vectorborne, waterborne, or foodborne implies a factor outside of human intervention.
+:::
 
-## ADDITIONAL INFORMATION (NOT GRADED)**
-These methods to estimate R(t) can now be implemented in a new R package called EpiNow2.  We're not using it in class because the methods that packages uses are more computationally demanding and could take a while to run on some computers.  EpiNow2 is more flexible than EpiEstim in several ways including:
+## ADDITIONAL INFORMATION (NOT GRADED)\*\*
 
-1. it can account for lags in case reporting.  Remember that R(t) is an estimate of transmission and calculations are performed using case onset dates. But sometimes we might be dealing with case report dates, which will necessarily be some time after case onset.  EpiNow2 can account for reporting delays.
-2. EpiNow2 can also handle more distributions in the of the serial interval (e.g., fixed, log-normal, gamma). 
+These methods to estimate R(t) can now be implemented in a new R package called EpiNow2. We're not using it in class because the methods that packages uses are more computationally demanding and could take a while to run on some computers. EpiNow2 is more flexible than EpiEstim in several ways including:
+
+1.  it can account for lags in case reporting. Remember that R(t) is an estimate of transmission and calculations are performed using case onset dates. But sometimes we might be dealing with case report dates, which will necessarily be some time after case onset. EpiNow2 can account for reporting delays.
+2.  EpiNow2 can also handle more distributions in the of the serial interval (e.g., fixed, log-normal, gamma).
 
 To use this package, delete the next line of code and the last one at the end of the file
 
+````{=html}
 <!-- 
 
 ```{r, echo = FALSE, eval=FALSE}
@@ -296,5 +377,5 @@ knitr::kable(summary(estimates))
 plot(estimates)
 ```
 
---> 
-
+-->
+````
