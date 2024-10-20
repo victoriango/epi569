@@ -1,0 +1,295 @@
+---
+title: "EPI 569 -- Week 6 Exercise: Vaccine Effects"
+author: "Victoria Ngo"
+date: "October 19, 2024"
+date-modified: "October 19, 2024"
+format:
+  html:
+    embed-resources: true
+widescreen: true
+smaller: true
+toc: true
+toc-expand: true
+---
+
+```{r setup, include = FALSE, echo = FALSE, eval = TRUE}
+#| label: setup
+#| include: false
+#| echo: false
+#| eval: true
+set.seed(3)
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+library(splitstackshape)
+```
+
+# Background 1
+
+A new vaccine to protect against influenza hospitalization has been introduced into a nursing home population. You have data on two nursing homes - one where the vaccine was not given to residents and one where it was. In the home where the vaccine was given to residents, about 50% of residents were vaccinated and about 50% were not. Over the course of the following winter, i.e. the "flu season," surveillance was conducted among nursing home residents who were hospitalized for influenza.
+
+The dataset 'vaccineeffects.csv' contains the following data:
+
+-   `STUDYID`: this is a unique ID for nursing home residents.
+
+-   `INTERVENTION_ARM`: binary indicator for which nursing home the resident is from (0=nursing home that did not receive vaccines, 1=nursing home that received vaccines)
+
+-   `VACCINATED`: binary indicator for whether individual resident was vaccinated (0=not vaccinated, 1=vaccinated)
+
+-   `CONFIRMED_CASE`: binary indicator for whether resident was a confirmed influenza case (0=not confirmed case, 1=confirmed case)
+
+```{r}
+#| echo: true
+set.seed(569)
+# simulates dataset -- comment out to run again
+subjects <- 300
+ nh_residents <- expand.grid(studyid = seq(from = 1, to = subjects))
+ nh_residents %>%
+   mutate(intervention_arm = ifelse(studyid <= subjects/2, 0, 1)) %>%
+   mutate(vaccinated = ifelse(intervention_arm == 0, 0, rbinom(subjects,1,0.5))) %>%
+   mutate(confirmed_case = ifelse(intervention_arm == 0,
+                                rbinom(subjects,1,.5),
+                                ifelse(vaccinated == 0,
+                                       rbinom(subjects,1,0.31),
+                                       rbinom(subjects,1,0.16)))) -> nh_residents
+ write.csv(nh_residents, file = "vaccineeffects.csv")
+```
+
+```{r}
+#nh_residents <- read.csv("https://raw.githubusercontent.com/blopman/epi569/master/vaccineeffects.csv")
+```
+
+## Question 1 \[2 pts\]
+
+Calculate the attack rates (number of cases/number at-risk) for the following
+
+a.  Among everyone in the nursing home where the vaccine was introduced
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+vax_attack_rates <- nh_residents %>%
+  summarise(
+    vax_confirmed_cases = sum(confirmed_case[intervention_arm == 1], na.rm = TRUE),
+    vax_total_residents = sum(intervention_arm == 1)
+  ) %>%
+  mutate(attack_rate = (vax_confirmed_cases / vax_total_residents)*100) %>%
+  rename(
+    "Vaccinated Arm Confirmed Cases" = vax_confirmed_cases,
+    "Vaccinated Arm Total Residents" = vax_total_residents,
+    "Attack Rate (%)" = attack_rate
+  )
+round(vax_attack_rates, 2)
+```
+:::
+
+::: {.callout-important appearance="minimal" icon="false"}
+**Vaccinated Arm** **Attack Rate = 24.67%**
+:::
+
+b.  Among everyone in the nursing home where the vaccine was not introduced
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+unvax_attack_rates <- nh_residents %>%
+  summarise(
+    unvax_confirmed_cases = sum(confirmed_case[intervention_arm == 0], na.rm = TRUE),
+    unvax_total_residents = sum(intervention_arm == 0)
+  ) %>%
+  mutate(attack_rate = (unvax_confirmed_cases / unvax_total_residents)*100) %>%
+  rename(
+    "Unvaccinated Arm Confirmed Cases" = unvax_confirmed_cases,
+    "Unvaccinated Arm Total Residents" = unvax_total_residents,
+    "Attack Rate (%)" = attack_rate
+  )
+round(unvax_attack_rates, 2)
+```
+:::
+
+::: {.callout-important appearance="minimal" icon="false"}
+**Unvaccinated Arm** **Attack Rate = 50%**
+:::
+
+c.  In the nursing home where the vaccine was introduced, among vaccinated residents only
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+vax_vax_attack_rates <- nh_residents %>%
+  summarise(
+    vax_confirmed_cases = sum(confirmed_case[intervention_arm == 1 & vaccinated == 1], na.rm = TRUE),
+    vax_total_residents = sum(intervention_arm == 1 & vaccinated == 1)
+  ) %>%
+  mutate(attack_rate = (vax_confirmed_cases / vax_total_residents)*100) %>%
+  rename(
+    "Vaccinated Arm, Vaccinated Confirmed Cases" = vax_confirmed_cases,
+    "Vaccinated Arm, Vaccinated Total Residents" = vax_total_residents,
+    "Attack Rate (%)" = attack_rate
+  )
+round(vax_vax_attack_rates, 2)
+```
+:::
+
+::: {.callout-important appearance="minimal" icon="false"}
+**Vaccinated Arm, Vaccinated** **Attack Rate = 12.99%**
+:::
+
+d.  In the nursing home where the vaccine was introduced, among unvaccinated residents only
+
+**ANSWER BELOW**
+
+```{r}
+vax_unvax_attack_rates <- nh_residents %>%
+  summarise(
+    unvax_confirmed_cases = sum(confirmed_case[intervention_arm == 1 & vaccinated == 0], na.rm = TRUE),
+    unvax_total_residents = sum(intervention_arm == 1 & vaccinated == 0)
+  ) %>%
+  mutate(attack_rate = (unvax_confirmed_cases / unvax_total_residents)*100) %>%
+  rename(
+    "Vaccinated Arm, Unvaccinated Confirmed Cases" = unvax_confirmed_cases,
+    "Vaccinated Arm, Unvaccinated Total Residents" = unvax_total_residents,
+    "Attack Rate (%)" = attack_rate
+  )
+round(vax_unvax_attack_rates, 2)
+```
+
+::: {.callout-important appearance="minimal" icon="false"}
+**Vaccinated Arm, Unvaccinated** **Attack Rate = 36.99%**
+:::
+
+## Question 2 \[2 pts\]
+
+Calculate the following effect measures \[2pts\]
+
+```{r}
+total_effect <- 100 * (
+  1 - (
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 1 & nh_residents$vaccinated == 1], na.rm = TRUE) / sum(nh_residents$vaccinated == 1 & nh_residents$intervention_arm == 1)) /
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 0 & nh_residents$vaccinated == 0], na.rm = TRUE) / sum(nh_residents$vaccinated == 0 & nh_residents$intervention_arm == 0))
+  )
+)
+
+overall_effect <- 100 * (
+  1 - (
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 1], na.rm = TRUE) / sum(nh_residents$intervention_arm == 1)) /
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 0], na.rm = TRUE) / sum(nh_residents$intervention_arm == 0))
+  )
+)
+
+direct_effect <- 100 * (
+  1 - (
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 1 & nh_residents$vaccinated == 1], na.rm = TRUE) / sum(nh_residents$vaccinated == 1 & nh_residents$intervention_arm == 1)) /
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 1 & nh_residents$vaccinated == 0], na.rm = TRUE) / sum(nh_residents$vaccinated == 0 & nh_residents$intervention_arm == 1))
+  )
+)
+
+indirect_effect <- 100 * (
+  1 - (
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 1 & nh_residents$vaccinated == 0], na.rm = TRUE) / sum(nh_residents$vaccinated == 0 & nh_residents$intervention_arm == 1)) /
+    (sum(nh_residents$confirmed_case[nh_residents$intervention_arm == 0 & nh_residents$vaccinated == 0], na.rm = TRUE) / sum(nh_residents$vaccinated == 0 & nh_residents$intervention_arm == 0))
+  )
+)
+
+effect_table <- data.frame(
+  Measure = c("Total Effect", "Overall Effect", "Direct Effect", "Indirect Effect"),
+  Value = round(c(total_effect, overall_effect, direct_effect, indirect_effect), 2)
+)
+
+print(effect_table)
+
+```
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+1.  Total effect: 74.03%
+
+2.  Overall effect: 50.67%
+
+3.  Direct effect: 64.89%
+
+4.  Indirect effect: 26.03%
+:::
+
+# Background 2
+
+Now, we are going to investigate whether vaccination has any effect on **infectiousness** (i.e. are vaccinated persons less or more likely to transmit compared to unvaccinated persons).
+
+The dataset 'contacts.csv' contains the following data:
+
+-   `STUDYID`: this is a unique ID for the nursing home residents with whom visitors (contacts) had contact (e.g. resident 1 made 7 contacts)
+
+-   `INDEX_VACCINATED`: binary indicator for whether individual resident (with whom visitors had contact) was vaccinated (0= not vaccinated, 1=vaccinated)
+
+-   `CONTACT_ILI`: binary indicator for whether a contact of the resident developed influenza like illness (ILI) (0= no symptoms of ILI, 1= ILI)
+
+You have data on the all of the contacts between hospitalized cases from the nursing homes and their visitors (family and friends). Epidemiologists from the state health department recorded whether these contacts reported flu-like symptoms within 2 weeks of their nursing home contact.
+
+```{r}
+nh_contacts <- read.csv("https://raw.githubusercontent.com/blopman/epi569/master/contacts.csv")
+```
+
+## Question 3 \[2 pts\]
+
+Calculate the following:
+
+a.  The secondary attack rate among visitors who came in contact with confirmed cases, stratified by the vaccination status of the nursing home resident (i.e. index case). Specifically, calculate the secondary attack rate among visitors who came in contact with vaccinated cases and separately calculate the secondary attack rate among visitors who came in contact with unvaccinated cases.
+
+```{r}
+sar_unvaccinated <- 
+  100 * (sum(nh_contacts$contact_ili[nh_contacts$index_vaccinated == 0], na.rm = TRUE) / sum(nh_contacts$index_vaccinated == 0))
+
+sar_vaccinated <- 100 * (sum(nh_contacts$contact_ili[nh_contacts$index_vaccinated == 1], na.rm = TRUE) /sum(nh_contacts$index_vaccinated == 1))
+
+sar_table <- data.frame(
+  "Contact Type" = c("Unvaccinated Resident", "Vaccinated Resident"),
+  "Secondary Attack Rate (%)" = c(round(sar_unvaccinated, 2), round(sar_vaccinated, 2)))
+
+print(sar_table)
+```
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+Unvaccinated Index: 18.09%
+
+Vaccinated Index: 9.68%
+:::
+
+b.  Name at least one assumption in this calculation \[1pt\]
+
+::: {.callout-note appearance="minimal" icon="false"}
+One key assumption is that we have complete and accurate reporting of the influenza-like illness (ili) among contacts.
+:::
+
+**ANSWER BELOW**
+
+## Question 4 \[2 pts\]
+
+Calculate the vaccine effectiveness for infectiousness.
+
+**Note**: *If you were going to calculate standard error and confidence intervals, you would have to take into account clustering, whereby there are many contacts per case. You may ignore clustering in your calculations.*
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+ve <- round(100*(1 - (sar_vaccinated / sar_unvaccinated)), 2)
+print(ve)
+```
+:::
+
+## Question 5 \[2 pts\]
+
+Based on the effectiveness measures you have calculated, do you think there is evidence for indirect effects for this vaccine? If so, what is the evidence for indirect effects (i.e, which effect(s) that you calculated provides the evidence) and what is the likely mechanism (i.e., explain in words how the vaccine may be causing the indirect effect)?
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+Yes, there is evidence for indirect effects of the vaccine based on the previously calculated 26.03% indirect effect. This number suggests that vaccinated individuals reduce transmission to others, contributing toward a community-wide protection. The likely mechanism for this is a reduction in the virus spread due to fewer infections in vaccinated individuals, which in turn lowers transmission to unvaccinated individuals.
+:::
