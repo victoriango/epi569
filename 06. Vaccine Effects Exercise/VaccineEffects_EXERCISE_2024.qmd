@@ -264,7 +264,7 @@ Vaccinated Index: 9.68%
 b.  Name at least one assumption in this calculation \[1pt\]
 
 ::: {.callout-note appearance="minimal" icon="false"}
-One key assumption is that we have complete and accurate reporting of the influenza-like illness (ili) among contacts.
+One key assumption is that we have complete and accurate reporting of the influenza-like illness (ili) among contacts. Additionally, we assume that all contacts have the same duration of contact with an ill person and each person has the same probability of transmission.
 :::
 
 **ANSWER BELOW**
