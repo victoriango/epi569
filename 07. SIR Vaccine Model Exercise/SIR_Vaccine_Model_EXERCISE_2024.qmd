@@ -1,0 +1,311 @@
+---
+title: "EPI 569 -- Week 7 Exercise : Modeling vaccination"
+author: "Victoria Ngo"
+date: "October 27, 2024"
+format:
+  html:
+    embed-resources: true
+widescreen: true
+smaller: true
+toc: true
+toc-expand: true
+self-contained: true
+---
+
+```{r setup, include=TRUE, echo = TRUE, warning=FALSE, message=FALSE}
+library(kableExtra)
+library(deSolve)
+library(reshape2)
+library(ggplot2)
+library(tidyverse)
+```
+
+# Background 1
+
+Recall back in week 2, that a new pathogen emerged in the Republic of Zubrowka. To refresh your memory:
+
+-   All individuals are susceptible, and become infected by contact with an infected individual
+-   They are infectious for a while and then become immune
+-   Immunity eventually decays
+
+And here are the differential equations that we used to model transmission of Zubrowka Virus (ZV)
+
+$$\begin{align}
+\frac{\delta S}{\delta t} &= \mu N + \omega R - (\lambda_{t} + \mu)S\\
+\frac{\delta I}{\delta t} &= \lambda_{t}S - (\sigma + \mu)I\\
+\frac{\delta R}{\delta t} &= \sigma I - (\omega + \mu)R
+\end{align}$$
+
+where $\lambda(t) = \alpha \beta \frac{I}{N}$.
+
+Recall that $\lambda$ is the force (or rate) of infection per susceptible person. It is equal to the contact rate, $\alpha$, times the probability of infection on contact with an infectious person, $\beta$, times the probability that a randomly encountered person is infectious, $\frac{I}{N}$.
+
+Other notation in the equations are:
+
+-   $\mu=$ the birth and death rate, maintaining constant population size $N$
+-   $\omega=$ the rate at which immunity is lost
+-   $\sigma=$ the recovery rate
+
+Fortunately, in the month since ZV emerged, vaccinologists at the Emory Vaccine Center have developed a vaccine against ZV. Your colleagues at the Vaccine Center and decision-makers at CDC have come to you to help them to develop a policy about how to implement this vaccine on campus. They need to decide on an intervention strategy with your help.
+
+Here is the flow diagram of ZV transmission that you developed in Week 2.
+
+```{r}
+knitr::include_graphics(here::here("07. SIR Vaccine Model Exercise", "SIR_Q1.png"))
+```
+
+## Question 1 **(2pt)**
+
+Add vaccination to the flow diagram with **random vaccination** and **vaccination at birth** for an **all-or-nothing vaccine**. Clearly, no one is born an Emory student (at least not literally) but we can think of new students entering the Emory population as being born. You can assume that there is no waning immunity from vaccination (only natural waning immunity). Please include both mechanisms in a single flow diagram and add a separate compartment for those vaccinated.
+
+Be sure to label all compartments and flows with the appropriate notation, and define any notation that you introduce, if any.
+
+::: callout-tip
+Recall that you can use the `knitr::include_graphics()` function to insert an image file into your .html document
+:::
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+knitr::include_graphics(here::here("07. SIR Vaccine Model Exercise", "q1_vaccine_flow_diagram.png"))
+```
+:::
+
+## Question 2 **(2 pt)**
+
+Now, rewrite the equations to include vaccination as *differential* equations (so that you can directly translate to the R model).\
+
+You may use the Equation editor in Word, Quarto, or another program of your choosing, or hand write and include an image.
+
+*Go through these equations to ensure that you understand what each term implies about the epidemiology of infection. Review the formulae in the spreadsheet (if using Excel). Make sure that they match the flow diagram above.*
+
+**ANSWER BELOW**
+
+::: {.callout-note appearance="minimal" icon="false"}
+```{r}
+knitr::include_graphics(here::here("07. SIR Vaccine Model Exercise", "q2_diff_eq.png"))
+```
+:::
+
+# Background 2
+
+Now, explore the model with vaccination. Use the equations you wrote above as a guide. Check that the model matches what you wrote, then test out your model \[ungraded\]:
+
+-   Change death/birth rates
+-   Increase vaccine coverage ($p_{1}$ and $p_{2}$) from 0%
+
+Check that it is behaving as you would expect. If not, review the equations **CAREFULLY** before proceeding.
+
+Now, add (or confirm) the parameter values to the *R* script.
+
+| Parameter                                           | Symbol   | Value |
+|-----------------------------------------------------|----------|-------|
+| Daily contact rate                                  | $\alpha$ | 5.0   |
+| Transmission probability                            | $\beta$  | 0.1   |
+| Recovery rate                                       | $\sigma$ | 0.2   |
+| Loss of immunity rate                               | $\omega$ | 0     |
+| Birth and death rate                                | $\mu$    | 0.05  |
+| Vaccination rate of general student body            | $p_{2}$  | 0     |
+| Vaccination rate of new student admissions (births) | $p_{1}$  | 0     |
+| Vaccine efficacy                                    | $\chi$   | 85%   |
+
+## Question 3 **(1 pt)**
+
+In a clinical trial, we have learned that the **vaccine efficacy is 85%**.
+
+What is the critical vaccination threshold that needs to be achieved to stop transmission (using parameter values above)? From the table above, generate variables for alpha, beta, sigma, chi and mu in order to perform the calculations.
+
+**ANSWER BELOW**
+
+```{r}
+alpha = 5   #daily contacts
+beta = 0.1  #probability of infection on contact
+sigma = 0.2   #rate of recovery per dat
+omega = 0.0   #rate of immunity per dat
+mu = 0.05   #per captita birth and death rate
+
+
+R0 <- (alpha*beta)/(sigma+mu)
+
+vc <- ((1-(1/R0))/0.85) #critical vaccination threshold
+vc
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+The critical vaccination threshold is 58.82%.
+:::
+
+# Background 3
+
+Here is the model with vaccination structure (though no one is actually vaccinated yet):
+
+```{r, echo = TRUE}
+#Define parameters
+parms <- c(alpha = 5,       # alpha = daily contacts
+           beta = 0.1,      # beta = probability of infection on contact
+           sigma = 0.2,     # sigma = rate of recovery per day
+           omega = 0.0,     # omega = rate of immune loss per day
+           mu = 0.05,       # mu =  per capita birth and death rate
+           p_2 = 0.05,       # p_2 = Vaccination rate of general student body (rate per day)
+           p_1 = 0.0,       # p_1 = Vaccination rate of new student admissions (proportion of births vaccinated)
+           chi  = 0.85)     # chi = proportion who respond to vaccine among vaccinated
+
+#Initial conditions
+init <- c(S = 99,           # number initilly susceptible
+          I = 1,            # number initally infectious
+          R = 0,            # number initially immune or "recovered"
+          V = 0)            # number initially vaccinated            
+          
+#Define model equations -- do not change -- or change with care!
+sir_ode <- function(times,init,parms){
+  with(as.list(c(parms,init)), {
+    # ODEs
+    N <- S+I+R+V
+    dS <- omega*R - alpha*beta*(I/N)*S - mu*S - p_2*chi*S + (1-p_1*chi)*mu*N
+    dI <- alpha*beta*(I/N)*S - sigma*I - mu*I
+    dR <- sigma*I  - omega*R - mu*R
+    dV <- - mu*V + p_1*chi*mu*N + p_2*chi*S
+    list(c(dS,dI,dR,dV)) 
+  })
+}
+
+# This creates the output from model equations.  
+#If you want to run the model for longer, change the second term eg: seq(0,200,...)
+times <- seq(0,100,length.out=100)
+sir_out <- lsoda(init,times,sir_ode,parms)
+sir_out_long <- melt(as.data.frame(sir_out),"time")
+
+sir_out_long %>% 
+   filter(variable == "I") %>% 
+   summarise(total_cases = (parms['sigma'])*(sum(value))) -> final_size
+```
+
+```{r, echo = FALSE, fig.width = 4, fig.height = 3, fig.align = "center"}
+#Plotting the model output
+ggplot(sir_out_long,aes(x=time,y=value,colour=variable,group=variable))+
+  geom_line(lwd=2)+             #Add line
+  xlab("Time")+ylab("Number")   #Add labels
+```
+
+## Question 4 **(2 pt)**
+
+Now, its time to take action. With your team of vaccinators, you can vaccinate 5% of the general student body on any given day.\
+
+STEP 1: Change $p_{2}$ in *R* to 0.05
+
+STEP 2: Keep the vaccination rate $p_{1}$ of new student admissions at 0 and all other parameters as listed above.\
+
+::: {.callout-note appearance="minimal" icon="false"}
+a.  When does the epidemic peak? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The epidemic looks like it peaks around day 18.
+
+```{r}
+peak <- sir_out_long %>%
+  group_by(variable) %>%
+  summarise(max(value))
+
+peak
+```
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+b.  When does the epidemic reach a stable incidence (i.e. when does it end)? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The epidemic doesn't truly end in this time period. At day 100, I has a value of 1.68. This means that there would still be infections past this period. It does stabilize around day 100 though.
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+C. What is the final outbreak size (see provided code above for *R*)? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The final outbreak size is 62 persons.
+
+```{r}
+print(final_size)
+```
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+d.  How to the measures calculated in 4a-c compare to an unvaccinated population (when $p_{2}$ and $p_{1}$ are both set to 0)? \[0.1 pts\]
+
+**ANSWER BELOW**
+
+In the unvaccinated scenario, the epidemic peaks around 20 days, which is similar to our original vaccinated scenario at 18 days. The unvaccinated scenario has a higher stabilization infection count than the vaccinated scenario at 10 people vs 1 person. Additionally, the final outbreak size for the unvaccinated scenario has a higher count at 213 people, as opposed to the 62 persons in the vaccinated scenario.
+:::
+
+## Question 5 **(2 pt)**
+
+With the same team of vaccinators, you can vaccinate 50% of the incoming student body on any given day.
+
+STEP 1: Change $p_{1}$ to 0.5
+
+STEP 2: Keep vaccination rate of the general student body at 0.05
+
+Using these new vaccination parameters, answer the same questions as above:
+
+::: {.callout-note appearance="minimal" icon="false"}
+a.  When does the epidemic peak? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The epidemic peaks around day 11.
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+b.  When does the epidemic end (i.e. reach stable incidence)? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The epidemic reaches a stable incidence by day 29. There is less than 1 person being infected on average. By day 100, the epidemic reached 0.
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+c.  What is the final outbreak size? \[0.33 pts\]
+
+**ANSWER BELOW**
+
+The final outbreak size is 15 cases.
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+d.  How does vaccinating just the incoming students compare to vaccinating just the general student body? \[1 pt\]
+
+*You can assess this by changing* $p_{2}$ back to 0 and keeping $p_{1}$ to 0.5, then change $p_{2}$ to 0.05 and $p_{1}$ to 0, and compare.
+
+**ANSWER BELOW**
+
+Vaccinating just the incoming students has an outbreak size of 66.65 students, versus vaccinating the general student body has an outbreak size of 61.14 students. Both scenarios peak around 18 days and do not fully end by day 100.
+
+Although both outbreak scenarios are similar, vaccinating the general student body yields a slightly smaller outbreak by approximately 5 students.
+:::
+
+## Question 6 **(1 pt)**
+
+::: {.callout-note appearance="minimal" icon="false"}
+a.  How does changing the birth/death rate (for example to 0 or 0.1) affect the impact of each vaccination strategy (with $p_{1}$=0.5 and $p_{2}$=0.05)? \[0.5 pts\]
+
+**ANSWER BELOW**
+
+Our original scenario has mu at 0.05. I changed the mu value to 0, 0.1, and 0.2. As mu increased, I saw that the epidemic peak shifted earlier (14 days. 7 days. 2 days, respectively) and the epidemic ended sooner (35 days, 18 days, 4 days, respectively). Overall, as the birth/death rate increases, the outbreak decreases in both size and scope.
+:::
+
+::: {.callout-note appearance="minimal" icon="false"}
+b.  Why do we see these changes? \[0.5 pts\]
+
+**ANSWER BELOW**
+
+We see these changes occur because as there is increased vaccination of incoming students, we're increasing the size of the vaccinated pool of students. Without having a waning vaccine immunity, this vaccination strategy decreases the number of susceptible students, contributing to a smaller outbreak.
+:::
+
+# Additional ungraded question -- just for you to think about, if interested. **0 pts**
+
+How would you adapt the model to represent a leaky vaccine? Write down the force(s) of infection for this model if we were dealing with a leaky vaccine (you do not need to write the full models).
+
+**ANSWER BELOW**
