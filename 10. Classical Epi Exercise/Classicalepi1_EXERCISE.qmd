@@ -1,0 +1,327 @@
+---
+title: "EPI 569 -- Week 10 Exercise: Outcomes and effect measures"
+author: "Victoria Ngo"
+date: "11/15/2024"
+format:
+  html:
+    embed-resources: true
+widescreen: true
+smaller: true
+toc: true
+toc-expand: true
+---
+
+```{r setup, include = FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+## Background
+
+-   The MAL-ED study was an observational birth cohort of 2,134 children conducted in 8 sites around the world:\
+-   Countries included Peru, Brazil, Tanzania, South Africa, Pakistan, Nepal, India, and Bangladesh.\
+-   Children were visited in their homes twice per week from birth to 2 years of age to capture daily information on diarrhea.
+-   We are interested in summarizing the burden of diarrhea and estimating the effect of sex on diarrhea risk.
+-   We have data from Bangladesh and India
+
+## The dataset 'maled2023.csv' contains the following data:
+
+-   **pid:** this is a unique ID for children.
+
+-   **Country_ID:** site the child was from: BGD=Dhaka, Bangladesh; INV=Vellore, India
+
+-   **female:** binary indicator for whether individual was female (0=no (male), 1=yes)
+
+-   **age:** age in days for that observation
+
+-   **incidentdiarrhea:** binary indicator for the first day of diarrhea in a diarrhea episode
+
+-   **diarrhea:** binary indicator for diarrhea on this day (1=yes, 0=no)
+
+-   **laz:** length-for-age z-score (measure of height) at 2 years of age
+
+```{r include=FALSE, warnings=FALSE, message=FALSE}
+maled <- read.csv("https://raw.githubusercontent.com/blopman/epi569/master/maled2023.csv")
+#View(maled2023)
+```
+
+## We are going to estimate several measures of diarrhea burden
+
+## 1. Estimate the incidence of diarrhea per child year (i.e., \# incident cases/total person-years in a given period) \[3pts\]
+
+### 1a. in the first year of life (days 0-365) among males
+
+```{r,  warnings=FALSE, message=FALSE}
+yr1bysexmale <- maled %>% 
+  filter(age<=365 & female==0) %>% 
+  summarize(cases=sum(incidentdiarrhea),
+            persontime=n(),
+            incidence = sum(incidentdiarrhea)/n()*365.25)
+print(yr1bysexmale)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The incidence of diarrhea per male child aged 0-365 is 3.110
+:::
+
+### 1b. in the first year of life (days 0-365) among females
+
+```{r}
+yr1bysexfemale <- maled %>% 
+  filter(age<=365 & female==1) %>% 
+  summarize(cases=sum(incidentdiarrhea),
+            persontime=n(),
+            incidence = sum(incidentdiarrhea)/n()*365.25)
+print(yr1bysexfemale)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The incidence of diarrhea per male child aged 0-365 days is 3.152
+:::
+
+### 1c. in the second year of life (days 366-731) among males and females
+
+```{r}
+yr1bysexmalefemale <- maled %>% 
+  filter(age>=366 & age <=731) %>% 
+  summarize(cases=sum(incidentdiarrhea),
+            persontime=n(),
+            incidence = sum(incidentdiarrhea)/n()*365.25)
+print(yr1bysexmalefemale)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The incidence of diarrhea per male and female child aged 366 - 731 days is 2.560
+:::
+
+### 1d. If you had a intervention that could prevent diarrhea, but you could't introduce the intervention to everyone due to resource restrictions, who would you target to prevent the most disease? Choose either males or females, and children in the first year of life or the second year of life.
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+If this was the case, I would focus on female children in the first year of life due to this category having the highest incidence.
+:::
+
+## 2. Estimate the longitudinal prevalence (i.e., proportion of days with diarrhea = days with diarrhea/days observed in a given period) \[2pts\]
+
+### 2a. over the first 2 years of life (days 0-731)
+
+```{r}
+longprev <- maled %>% 
+  summarize(longprevalence = sum(diarrhea)/n())
+print(longprev)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The longitudinal prevalence of diarrhea among children over the first two years of life is 2.766%.
+:::
+
+### 2b. in the first week of 2nd 6 months of life (days 183-189)
+
+```{r}
+longprev_2b <- maled %>% 
+  filter(age>=183 & age<=189) %>% 
+  summarize(longprevalence_2b = sum(diarrhea)/n())
+
+print(longprev_2b)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The longitudinal prevalence of diarrhea among children aged 183 - 189 days old is 3.974%.
+:::
+
+### 2c. in the first week of the 2nd year of life (days 365-371)
+
+```{r}
+
+longprev_2c <- maled %>% 
+  filter(age>=365 & age<=371) %>% 
+  summarize(longprevalence_2c = sum(diarrhea)/n())
+
+print(longprev_2c)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The longitudinal prevalence of diarrhea among children aged 365-371 days old is 2.801%.
+:::
+
+### 2d. Do the estimates of longitudinal prevalence match the trends (with respect to age) in diarrhea incidence over time estimated in the previous question?
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+Yes, the elevated measures of longitudinal prevalence in days 183-189 , as compared to days 365-371, match the age-based trends in diarrhea incidence over time by matching the higher rates of incidence in the first year of life, as compared to the second year of life.
+:::
+
+## 3. Estimate the period prevalence of diarrhea (i.e., the proportion of children with diarrhea = number of children with diarrhea/total number of children in a given period) \[2.5pts\]
+
+### 3a. over the first 2 years of life (days 0-731)
+
+```{r}
+periodprev <- maled %>% 
+  group_by(pid) %>% 
+  summarize(dayswithdiarrhea = sum(diarrhea)) %>% 
+  mutate(diarrheainperiod = ifelse(dayswithdiarrhea > 0, 1,0)) %>% 
+  summarize(prevalence = sum(diarrheainperiod)/n())
+print(periodprev)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The period prevalence of diarrhea over the first two years of life is 89.147%.
+:::
+
+### 3b. in the first week of the 2nd 6 months of life (days 183-189)
+
+```{r}
+periodprev_3b <- maled %>% 
+  filter(age>=183 & age<=189) %>% 
+  group_by(pid) %>% 
+  summarize(dayswithdiarrhea = sum(diarrhea)) %>% 
+  mutate(diarrheainperiod = ifelse(dayswithdiarrhea > 0, 1,0)) %>% 
+  summarize(prevalence = sum(diarrheainperiod)/n())
+
+print(periodprev_3b)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The period prevalence for diarrhea over days 183-189 is 10.460%
+:::
+
+### 3c. in the first two weeks of the 2nd 6 months of life (days 183-196)
+
+```{r}
+periodprev_3c <- maled %>% 
+  filter(age>=183 & age<=196) %>% 
+  group_by(pid) %>% 
+  summarize(dayswithdiarrhea = sum(diarrhea)) %>% 
+  mutate(diarrheainperiod = ifelse(dayswithdiarrhea > 0, 1,0)) %>% 
+  summarize(prevalence = sum(diarrheainperiod)/n())
+
+print(periodprev_3c)
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The period prevalence for diarrhea over days 183-196 is 16.946%.
+:::
+
+### 3d. Describe how the time period for 3a-c above affected the period prevalence estimates.
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+As the time period increased, the period prevalence estimate also increased. This is because the study population remains constant throughout the study, so by keeping the denominator the same while increasing the numerator, the period prevalence increases.
+:::
+
+## Now, we'll manipulate the data so there is one row per child and add several summary variables
+
+-   **logpersontime:** log(total days child was observed in the first 2 years of life)
+
+-   **totalepisodes:** total number of diarrhea episodes observed over the first two years of life
+
+-   **longprevalence:** longitudinal prevalence of diarrhea over the first two years of life (days with diarrhea/days observed)
+
+```{r, echo = TRUE,  warnings=FALSE, message=FALSE}
+a <- maled %>% 
+  group_by(pid) %>% 
+  summarize(logpersontime = log(n()),
+            totalepisodes = sum(incidentdiarrhea),
+            longprevalence = sum(diarrhea)/n()) %>% 
+  mutate(anydiarrhea = ifelse(totalepisodes >=1,1,0))
+
+b <- maled %>% 
+  group_by(pid) %>% 
+  slice(1)  #%>% 
+#  select(pid, Country_ID, female, laz)
+
+wide <- left_join(b,a)
+
+```
+
+## 4. Estimate the association between female sex and diarrhea, adjusting for site, using several different effect measures \[2.5pts\]
+
+### 4a. Estimate the incidence rate ratio and 95% confidence interval.
+
+```{r,  warnings=FALSE, message=FALSE}
+m1 <- glm(totalepisodes ~ female + as.factor(Country_ID), family = poisson(link="log"), data = wide, offset = logpersontime)
+summary(m1)
+
+irr <- as.data.frame(cbind(exp(coef(m1)),exp(confint(m1))))
+irr
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The estimated incidence rate ratio for diarrhea in females is 1.068 (95% CI 0.989, 1.153).
+:::
+
+### 4b. Estimate the prevalence odds ratio and 95% confidence interval.
+
+```{r}
+
+m1 <- glm(anydiarrhea ~ female + as.factor(Country_ID), family = binomial(link="logit"), data = wide)
+summary(m1)
+or <- as.data.frame(cbind(exp(coef(m1)),exp(confint(m1))))
+or
+
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The estimated prevalence odds ratio for diarrhea in females is 1.087 (95% CI 0.620, 1.900).
+:::
+
+### 4c. Estimate the prevalence ratio and 95% confidence interval. (Hint: use a poisson model with robust variance to approximate the log-binomial model)
+
+```{r,  warnings=FALSE, message=FALSE}
+#m3 <- glm(anydiarrhea ~ female + as.factor(Country_ID), family = binomial(link=log), data = wide)
+#does not converge
+
+m3 <- glm(anydiarrhea ~ female + as.factor(Country_ID), family = poisson(link="log"), data = wide)
+summary(m3)
+
+#calculate robust variance since we are using the Poisson model to approximate log-binomial
+#install.packages("lmtest")
+#install.packages("sandwich")
+library(lmtest)
+library(sandwich)
+robust <-coeftest(m3, vcov = vcovHC(m3, type="HC1")) #calculate robust variance
+
+pr <- as.data.frame(cbind(exp(coef(robust)),exp(confint(robust))))
+
+
+```
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The estimated prevalence ratio for diarrhea in females is 1.009 (95% CI 0.950, 1.072).
+:::
+
+### 4d. Which effect estimate is closest to the null? Which estimate is furthest from the null?
+
+::: {.callout-note appearance="minimal" icon="false"}
+**ANSWER**
+
+The estimated prevalence ratio in 4c (1.009) is the closest to the null. The estimated prevalence odds ratio in 4b (1.087) is the farthest from the null.
+:::
